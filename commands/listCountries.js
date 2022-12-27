@@ -14,7 +14,7 @@ module.exports = {
         const embed = new EmbedBuilder()
             .setColor(Colors.Blue)
             .setTitle("Liste de " + countries.length + " pays")
-            .setDescription(countries.map(a => `- **${a.name}** (${a.id}) | <#${a.channels.find(a => a.name === "members")?.id}`).join("\n") || "Aucun pays.");
+            .setDescription(countries.map(a => `- **${a.name}** (${a.id}) | <#${a.channels.find(a => a.name === "membres")?.id}>`).join("\n") || "Aucun pays.");
 
         return interaction.reply({ embeds: [embed] });
     }
