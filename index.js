@@ -44,7 +44,7 @@ client.on("ready", () => {
 async function updateActivity() {
     const players = await axios.get("https://mcapi.xdefcon.com/server/minecraft.baramex.me/players/json");
     const count = players.data?.players || 0;
-    client.user.setActivity({ name: count + " en ligne | " + Country.getAll().length + " pays", type: ActivityType.Playing });
+    client.user.setActivity({ name: count + " en ligne | " + Country.getAll().length + " pays", type: ActivityType.Watching });
 }
 
 /* SPLASH COMMANDS */
