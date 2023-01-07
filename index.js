@@ -2,6 +2,8 @@ require("dotenv").config();
 const fs = require("fs");
 const { Collection, ActivityType } = require("discord.js");
 const client = require("./client");
+const { default: axios } = require("axios");
+const Country = require("./modules/Country");
 
 /* EVENTS */
 client.on("ready", () => {
@@ -33,10 +35,17 @@ client.on("ready", () => {
         });
     });
 
-    client.user.setActivity({ name: "minecraft.baramex.me", type: ActivityType.Playing })
+    updateActivity();
+    setInterval(updateActivity, 1000 * 60 * 5);
 
     console.log("Bot ready !");
 });
+
+async function updateActivity() {
+    const players = await axios.get("https://mcapi.xdefcon.com/server/minecraft.baramex.me/players/json");
+    const count = players.data?.players || 0;
+    client.user.setActivity({ name: count + " en ligne | " + Country.getAll().length + " pays", type: ActivityType.Playing });
+}
 
 /* SPLASH COMMANDS */
 client.on("interactionCreate", async interaction => {
