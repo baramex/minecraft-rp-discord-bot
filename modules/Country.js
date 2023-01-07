@@ -116,7 +116,7 @@ class Country {
         const channels = this.channels;
 
         for (const c of channels) {
-            const channel = await client.guild.channels.cache.get(c.id);
+            const channel = client.guild.channels.cache.get(c.id);
             if (!channel) channels.splice(channels.indexOf(c), 1);
         }
 
@@ -176,7 +176,7 @@ class Country {
         for (const m of this.members) {
             const member = client.guild.members.cache.get(m.id);
             if (member && !member.roles.cache.has(roleId)) await member.roles.add(client.guild.roles.cache.get(roleId));
-            else if (!member) this.members = this.members.filter(m => m.id !== member.id);
+            else if (!member) this.members = this.members.filter(m => m.id !== m.id);
         }
 
         const membersId = channels.find(c => c.name === "membres").id;
@@ -220,7 +220,7 @@ class Country {
         if (!name) throw new Error("Missing country name");
         if (!flag) throw new Error("Missing country flag");
 
-        const id = countries.get("countries").value().length + 1;
+        const id = (countries.get("countries").takeRight(1).value()[0]?.id || 0) + 1;
 
         const country = new Country({ id, name, flag, members: [] });
 
