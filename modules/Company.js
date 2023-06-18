@@ -6,7 +6,7 @@ class Company {
     constructor({ id, name, logo, members, categoryId = "", roleId = "", channels = [] }) {
         this.id = id;
         this.name = name;
-        this.flag = flag;
+        this.logo = logo;
         this.members = members;
 
         this.categoryId = categoryId;
@@ -14,17 +14,19 @@ class Company {
         this.channels = channels;
     }
 
-    addMember(memberId, capacity, share=undefined) {
+    addMember(memberId, capacity, share = undefined) {
         if (!memberId) throw new Error("Missing member id");
         if (!capacity) throw new Error("Missing capacity");
 
         if (this.members.find(m => m.id === memberId)) throw new Error("Member is already in the company");
-        if(!share) share = 100 / (this.members.length || 1);
+        if (!share) share = 100 / (this.members.length || 1);
+        if (!this.members.length) share = 100;
 
         this.members.forEach(m => {
             m.share -= share / this.members.length;
         });
-        this.members.push({ id: memberId, capacity, share });
+        this.members.push({ id: memberId, capacity, share })
+        console.log(this.members, share);
 
         return this.save();
     }
@@ -33,7 +35,7 @@ class Company {
         if (!memberId) throw new Error("Missing member id");
 
         const mem = this.members.find(m => m.id === memberId);
-        if(!mem) throw new Error("Member not found");
+        if (!mem) throw new Error("Member not found");
 
         this.members = this.members.filter(m => m.id !== memberId);
         const roleId = this.roleId;
@@ -43,6 +45,7 @@ class Company {
         this.members.forEach(m => {
             m.share += mem.share / this.members.length;
         });
+        console.log(this.members, mem.share);
 
         return this.save();
     }
@@ -57,10 +60,11 @@ class Company {
         member.capacity = capacity;
         member.share = share;
 
-        const mshare = (member.share - share) / (this.members.length-1);
+        const mshare = (member.share - share) / (this.members.length - 1);
         this.members.forEach(m => {
-            if(m.id !== memberId) m.share += mshare;
+            if (m.id !== memberId) m.share += mshare;
         });
+        console.log(this.members, mshare);
 
         return this.save();
     }
@@ -89,7 +93,7 @@ class Company {
                 name: this.fullname,
                 hoist: true,
                 color: "Random",
-                position: 2
+                position: 3
             });
 
             this.roleId = role.id;
@@ -220,12 +224,12 @@ class Company {
                 permissionOverwrites: [
                     {
                         id: client.guild.id,
-                        allow: [PermissionFlagsBits.ViewChannel,  PermissionFlagsBits.SendMessages],
+                        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages],
                         deny: [PermissionFlagsBits.ReadMessageHistory]
                     },
                     {
                         id: roleId,
-                        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages]
+                        allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.ManageMessages]
                     }
                 ]
             });
@@ -290,10 +294,10 @@ class Company {
     static getByMember(memberId) {
         if (!memberId) throw new Error("Missing member id");
 
-        const companies = companies.get("companies").filter({ members: [{ id: memberId }] }).value();
-        if (!companies) throw new Error("Company not found");
+        const comp = companies.get("companies").filter({ members: [{ id: memberId }] }).value();
+        if (!comp) throw new Error("Company not found");
 
-        return companies.map(a => new Company(a));
+        return comp.map(a => new Company(a));
     }
 
     static getByName(name) {

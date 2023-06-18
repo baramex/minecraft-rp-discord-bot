@@ -4,4 +4,4 @@ countries.defaults({ countries: [] }).write();
 const companies = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/companies.json"));
 companies.defaults({ companies: [] }).write();
 
-module.exports = { countries };
+module.exports = { countries, companies };

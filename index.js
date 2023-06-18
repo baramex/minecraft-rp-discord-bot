@@ -64,6 +64,7 @@ client.on("interactionCreate", async interaction => {
     }
     catch (err) {
         console.error("COMMAND ERROR", "Commande name: ", interaction.commandName, "Arguments: ", interaction.options.data.map(a => `${a.name}: ${a.value}`).join(" - "), "Error: ", err);
-        interaction.reply({ content: ":x: " + (err.message || "Erreur inattendue."), ephemeral: true });
+        if (!interaction.deferred) interaction.reply({ content: ":x: " + (err.message || "Erreur inattendue."), ephemeral: true }).catch(console.error);
+        else interaction.editReply({ content: ":x: " + (err.message || "Erreur inattendue."), ephemeral: true }).catch(console.error);
     }
 });

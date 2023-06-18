@@ -67,7 +67,7 @@ class Country {
                 name: this.flag + " " + this.name,
                 hoist: true,
                 color: "Random",
-                position: 3
+                position: 4
             });
 
             this.roleId = role.id;

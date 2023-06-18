@@ -1,4 +1,4 @@
-const { ApplicationCommandOptionType, PermissionFlagsBits } = require("discord.js");
+const { ApplicationCommandOptionType, PermissionFlagsBits, EmbedBuilder, Colors } = require("discord.js");
 const Country = require("../modules/Country");
 
 module.exports = {
@@ -10,13 +10,14 @@ module.exports = {
 
         if (action === "create") {
             if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) throw new Error("Vous n'avez pas la permission pour créer un pays !");
+            await interaction.deferReply();
 
             const name = interaction.options.getString("name", true);
             const flag = interaction.options.getString("flag", true);
 
             const country = await Country.create(name, flag);
 
-            return interaction.reply({ content: `:white_check_mark: Le pays ${country.name} a été créé avec succès !` });
+            return interaction.editReply({ content: `:white_check_mark: Le pays ${country.name} a été créé avec succès !` });
         }
         else if (action === "edit") {
             const id = interaction.options.getNumber("id", false);
@@ -34,6 +35,69 @@ module.exports = {
             await country.save();
 
             return interaction.reply({ content: `:white_check_mark: Le pays ${country.name} a été modifié !` });
+        }
+        else if (action === "list") {
+            const countries = Country.getAll();
+
+            const embed = new EmbedBuilder()
+                .setColor(Colors.Blue)
+                .setTitle("Liste de " + countries.length + " pays")
+                .setDescription(countries.map(a => `- **${a.name}** (${a.id}) | <#${a.channels.find(a => a.name === "membres")?.id}>`).join("\n") || "Aucun pays.");
+
+            return interaction.reply({ embeds: [embed] });
+        }
+        else if (action === "delete") {
+            const id = interaction.options.getNumber("id", false);
+            const country = id ? Country.load(id) : Country.getByMember(interaction.member.id);
+            const name = country.name;
+
+            if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator) && !country.members.find(a => a.id === interaction.member.id && a.capacity === "gérant")) throw new Error("Vous n'avez pas la permission pour créer un pays !");
+
+            await country.remove();
+
+            return interaction.reply({ content: `:white_check_mark: Le pays ${name} a été supprimé !` });
+        }
+        else if (action === "members") {
+            if (subaction === "add") {
+                const id = interaction.options.getNumber("id", false);
+                const country = id ? Country.load(id) : Country.getByMember(interaction.member.id);
+
+                if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator) && !country.members.find(a => a.id === interaction.member.id && a.capacity === "gérant")) throw new Error("Vous n'avez pas la permission pour créer un pays !");
+
+                const member = interaction.options.getMember("member", true);
+                const capacity = interaction.options.getString("capacity", true);
+
+                await country.addMember(member.id, capacity);
+
+                return interaction.reply({ content: `:white_check_mark: <@${member.id}> a été ajouté au pays !` });
+            }
+            else if (subaction === "remove") {
+                const id = interaction.options.getNumber("id", false);
+                const country = id ? Country.load(id) : Country.getByMember(interaction.member.id);
+
+                if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator) && !country.members.find(a => a.id === interaction.member.id && a.capacity === "gérant")) throw new Error("Vous n'avez pas la permission pour créer un pays !");
+
+                const member = interaction.options.getMember("member", true);
+
+                if (!country.members.find(a => a.id === member.id)) throw new Error("Membre non trouvé !");
+                await country.removeMember(member.id);
+
+                return interaction.reply({ content: `:white_check_mark: <@${member.id}> a été retiré du pays !` });
+            }
+            else if (subaction === "edit") {
+                const id = interaction.options.getNumber("id", false);
+                const country = id ? Country.load(id) : Country.getByMember(interaction.member.id);
+
+                if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator) && !country.members.find(a => a.id === interaction.member.id && a.capacity === "gérant")) throw new Error("Vous n'avez pas la permission pour créer un pays !");
+
+                const member = interaction.options.getMember("member", true);
+                const capacity = interaction.options.getString("capacity", true);
+
+                if (!country.members.find(a => a.id === member.id)) throw new Error("Membre non trouvé !");
+                await country.editMember(member.id, capacity);
+
+                return interaction.reply({ content: `:white_check_mark: <@${member.id}> a bien été modifié !` });
+            }
         }
     },
     options: [
