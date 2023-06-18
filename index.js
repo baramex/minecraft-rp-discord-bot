@@ -6,25 +6,27 @@ const { default: axios } = require("axios");
 const Country = require("./modules/Country");
 
 /* EVENTS */
-client.on("ready", () => {
+client.on("ready", async () => {
     client.guild = client.guilds.cache.get(process.env.GUILD_ID);
     if (!client.guild) throw new Error("Invalid guild id.");
     client.guild.members.fetch();
 
     /* SPLASH COMMANDS */
     client.commands = new Collection();
+    await client.application.commands.fetch().catch(console.error);
     fs.readdir("./commands/", (err, files) => {
         if (err) return console.error(err);
+
         files.forEach(file => {
             if (!file.endsWith(".js")) return;
             let props = require(`./commands/${file}`);
 
-            let c = client.guild.commands.cache.find(a => a.name == props.name);
+            let c = client.application.commands.cache.find(a => a.name == props.name);
             if (c) {
-                client.guild.commands.edit(c, { description: props.description, options: props.options || [] }).catch(console.error);
+                client.application.commands.edit(c, { description: props.description, options: props.options || [] }).catch(console.error);
             }
             else {
-                client.guild.commands.create({
+                client.application.commands.create({
                     name: props.name,
                     description: props.description,
                     options: props.options || []
@@ -33,7 +35,12 @@ client.on("ready", () => {
 
             client.commands.set(props.name, props);
         });
+
+        client.application.commands.cache.forEach(c => {
+            if (!client.commands.has(c.name)) c.delete().catch(console.error);
+        });
     });
+
 
     updateActivity();
     setInterval(updateActivity, 1000 * 60 * 5);
